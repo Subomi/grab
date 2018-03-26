@@ -9,9 +9,9 @@ options
 
 
 # Features
-- Bytes Range Download       *Done
+- Bytes Range Download       **Done**
 - Follow Redirects           
-- Automatic Continuation
+- Powered Recovery 
 - Compression
 - Download From Youtube
 - Download From Amazon S3
