@@ -12,23 +12,116 @@ import (
 	"time"
 )
 
-type Object struct {
+type fileObject struct {
+	filename string
 	fileExt string
 	size    int64
 }
 
+/*
+	This Object encapsulates a full download request.
+*/
 type DownloadReq struct {
-	client   *http.Client
-	Url      string
-	Range    [2]string
-	Filename string
-	wg       *sync.WaitGroup
-	file     *Object
+	conf *Config
+	wg *sync.WaitGroup
+	rangeDownload   bool
+	bytesPerRoutine int64
+	Url             string
+	file            *fileObject
+	rTrips []*dRoundTrip
 }
 
 // Download Files -> Compile into 1 -> Delete Sub-files
 
+// Url -> Follow Redirects ->
+func Staging(c *Config) (*DownloadReq, error) {
+	head, err := getHead(c.Url)
 
+	if err != nil {
+		return nil, err
+	}
+
+	dReq := new(DownloadReq)
+	dReq.conf = c
+
+	header := head.Header
+
+	// Parse Headers
+	fType, err := extractFileType(header)
+
+	if err != nil {
+		// Doesn't provide file type
+		// TODO(subomi) Find other means to decode content & proceed.
+		// This applies to other header fields retrieval mechanisms
+		dReq.rangeDownload = false
+	} else {
+		dReq.rangeDownload = true
+	}
+
+	dReq.file.fileExt = fType
+	cSize, err := extractContentSize(header)
+
+	if err != nil {
+		return nil, err
+	}
+	intSize, err := strconv.Atoi(cSize)
+
+	if err != nil {
+		return nil, err
+	}
+	dReq.file.size = int64(intSize)
+
+	if dReq.rangeDownload {
+		dReq.bytesPerRoutine = dReq.file.size / c.Routines
+		dReq.rTrips = createRange(dReq)
+	}
+
+	return dReq, nil
+}
+
+func createRange(dr *DownloadReq) []*dRoundTrip {
+	var lower, upper int64
+	var rTrips []*dRoundTrip
+
+	for i := 0; i < int(dr.conf.Routines); i++ {
+
+		if i == 0 {
+			lower, upper = 0, dr.bytesPerRoutine-int64(1)
+		} else if i+1 == int(dr.conf.Routines) {
+			lower = upper + 1
+			if rem := dr.file.size - (lower + dr.bytesPerRoutine); rem != 0 {
+				upper = lower + dr.bytesPerRoutine + rem
+			} else {
+				upper = lower + dr.bytesPerRoutine
+			}
+		} else {
+			lower = upper + 1
+			upper = lower + (dr.bytesPerRoutine - 1)
+		}
+
+		//log.Println(i, "=>", lower, upper)
+		dr.wg.Add(1)
+
+		rT := &dRoundTrip{
+			bytesRange: [2]string{strconv.Itoa(int(lower)), strconv.Itoa(int(upper))},
+		}
+
+		files := append(rTrips, rT)
+
+
+		downloadReq = DownloadReq{
+			client:   hC,
+			Url:      c.Url,
+			Range:    [2]string{strconv.Itoa(int(lower)), strconv.Itoa(int(upper))},
+			Filename: addPath(c, c.Filename+"-"+strconv.Itoa(i)),
+			file:     obj,
+		}
+
+		go downloadWorker(downloadReq)
+
+		files = append(dr.files, downloadReq.Filename)
+	}
+}
 
 /*
 	- Send HEAD Request & Get ContentSize & Check if Server supports range requests
@@ -61,38 +154,6 @@ func Download(c *Config) {
 
 	log.Println("Total File Size is", contentSize)
 	log.Printf("Bytes per %d Routines is %d", c.Routines, bytesPerRoutine)
-
-	for i := 0; i < int(c.Routines); i++ {
-
-		if i == 0 {
-			lower, upper = 0, bytesPerRoutine-1
-		} else if i+1 == int(c.Routines) {
-			lower = upper + 1
-			if rem := uint64(contentSize) - (lower + bytesPerRoutine); rem != 0 {
-				upper = lower + bytesPerRoutine + rem
-			} else {
-				upper = lower + bytesPerRoutine
-			}
-		} else {
-			lower = upper + 1
-			upper = lower + (bytesPerRoutine - 1)
-		}
-
-		//log.Println(i, "=>", lower, upper)
-		wg.Add(1)
-		downloadReq = DownloadReq{
-			client:   hC,
-			Url:      c.Url,
-			Range:    [2]string{strconv.Itoa(int(lower)), strconv.Itoa(int(upper))},
-			Filename: addPath(c, c.Filename+"-"+strconv.Itoa(i)),
-			wg:       &wg,
-			file:     obj,
-		}
-
-		go downloadWorker(downloadReq)
-
-		files = append(files, downloadReq.Filename)
-	}
 
 	log.Println("Waiting for goroutines to finish downloading ..")
 	wg.Wait() // Wait for all downloads to finish

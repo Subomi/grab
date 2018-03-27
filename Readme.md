@@ -1,6 +1,8 @@
 grab is a super http & http2 downloader
 
+```bash
 grab --url <url>
+```
 
 options
 --url url
@@ -17,3 +19,6 @@ options
 - Download From Amazon S3
 - Download From Minio
 - Download From Dropbox
+
+# Note
+Code Broken. Only master branch works.

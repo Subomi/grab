@@ -24,6 +24,7 @@ func main() {
 		// Its fine.
 	}
 
+	grab.Staging(c)
 	grab.Download(c)
 }
 

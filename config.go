@@ -5,7 +5,7 @@ package grab
 */
 type Config struct {
 	Url      string
-	Routines uint
+	Routines int64
 	Filename string
 	Path     string
 }
