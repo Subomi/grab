@@ -1,16 +1,24 @@
 package grab
 
+import "net/http"
+
 /*
 	Package that simply downloads.
 	- Should Implement the Interface RoundTripper tho
 */
 
 type dRoundTrip struct {
-	bytesRange [2]string
+	transport http.RoundTripper
+	req       *http.Request
+	dr        *DownloadReq
 }
 
-func NewdRoundTrip(bR [2]string) *dRoundTrip {
+func NewdRoundTrip() (*dRoundTrip, error) {
 	return &dRoundTrip{
-		bytesRange: bR,
-	}
+		transport: http.DefaultTransport,
+	}, nil
+}
+
+func (rt *dRoundTrip) RoundTrip(req *http.Request) (*http.Response, error) {
+	return rt.transport.RoundTrip(req)
 }

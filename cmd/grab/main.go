@@ -2,6 +2,8 @@ package main
 
 import (
 	"flag"
+	"fmt"
+	"log"
 	"os"
 
 	"github.com/play/grab"
@@ -24,14 +26,25 @@ func main() {
 		// Its fine.
 	}
 
-	grab.Staging(c)
-	grab.Download(c)
+	dr, err := grab.Staging(c)
+
+	if err != nil {
+		log.Fatal("An error occurred", err)
+	}
+
+	grab.Download(dr)
+
+	if ok := grab.Compile(dr.Downloads); !ok {
+		log.Fatal("Compilation Error Occurred!")
+	}
+	
+	fmt.Println("Download Completed")
 }
 
 func parseArgs(c *grab.Config) {
-	flag.StringVar(&c.Url, "url", "https://", "Url to download from ")
+	flag.StringVar(&c.URL, "url", "https://", "Url to download from ")
 	flag.StringVar(&c.Filename, "filename", "grabbed", "Filename used to save file")
-	flag.UintVar(&c.Routines, "routines", 4, "Number of goroutines to use to download")
+	flag.Int64Var(&c.Routines, "routines", 4, "Number of goroutines to use to download")
 
 	flag.Parse()
 }

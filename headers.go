@@ -21,7 +21,7 @@ func extractFileType(header interface{}) (string, error) {
 		return extArray[1], nil
 
 	case http.Header:
-		return extractFileType(h.Get("Content-Type"))
+		return extractFileType([]string{h.Get("Content-Type")})
 
 	default:
 		return "", errExtractingFileType
@@ -34,7 +34,7 @@ func extractContentSize(header interface{}) (string, error) {
 		return h[0], nil
 
 	case http.Header:
-		return extractContentSize(h.Get("Content-Length"))
+		return extractContentSize([]string{h.Get("Content-Length")})
 
 	default:
 		return "", errExtractingContentSize
