@@ -1,6 +1,8 @@
 package grab
 
-import "sync"
+import (
+	"sync"
+)
 
 type DownloadReq struct {
 	conf            *Config

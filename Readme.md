@@ -9,11 +9,17 @@ options
 --routines num
 
 
+# Installation
+`bash
+make build
+make install
+`
 
 # Features
 - Bytes Range Download       **Done**
 - Follow Redirects           **Done**
-- Powered Recovery 
+- Powered Recovery
+- Support TLS           
 - Compression
 - Download From Youtube
 - Download From Amazon S3
@@ -24,5 +30,10 @@ options
 # WishList
 - IPFS 
 
-# Note
-Code Broken. Only master branch works.
+
+# Powered Recovery
+- Default User Configuration file
+- Default System-wide Configuration file
+- Create Home & System folders
+- Copy files to Home & System folders respectively
+- Inside Home folder, create the caching layer.

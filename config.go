@@ -3,9 +3,18 @@ package grab
 /*
 	Url to download information
 */
-type Config struct {
-	URL      string
-	Routines int64
-	Filename string
-	Path     string
+
+type OverWriteableConfig struct {
+	CacheSize int64
+	CacheDir  string
+	HomeDir   string
 }
+
+type SystemConfig struct {
+	OverWriteableConfig
+}
+
+type UserConfig struct {
+	OverWriteableConfig
+}
+

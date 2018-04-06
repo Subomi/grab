@@ -37,7 +37,7 @@ func main() {
 	if ok := grab.Compile(dr.Downloads); !ok {
 		log.Fatal("Compilation Error Occurred!")
 	}
-	
+
 	fmt.Println("Download Completed")
 }
 
